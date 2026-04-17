@@ -3,47 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Student CRUD</title>
 </head>
 <body>
     <h1>Student</h1>
-    <button onclick= "loadStudents()"> Display Students</button>
-<ul id = "List"></ul>
-<h1>ADD STUDENT</h1>
-<input type ="text" id="name" name="name" placeholder="name"/>
-<input type ="text" id="yearlevel" name="yearlevel" placeholder="yearlevel"/>
-<button onclick="addStudents()">Submit</button>
-</body>
+    <button onclick="loadStudents()">Display Students</button>
+
+    <ul id="List"></ul>
+
+    <h1>ADD STUDENT</h1>
+    <input type="text" id="name" placeholder="name" />
+    <input type="number" id="yearlevel" placeholder="yearlevel" />
+    <button onclick="addStudents()">Submit</button>
+
 <script>
-    async function loadStudents(){
-        const res = await fetch(`http://localhost:3000/api/student`)
-        const data = await res.json()
+const API = "http://localhost:3000/api/student"
 
-        const list = document.getElementById('List')
-        List.innerHTML = ""
+async function loadStudents(){
+    const res = await fetch(API)
+    const data = await res.json()
 
-        data.forEach(students => {
-            const li = document.createElement('li')
-            li.textContent = `NAME: ${students.name} \n YEAR LEVEL: ${students.yearlevel}`
-            List.appendChild(li)
-        });
+    const list = document.getElementById('List')
+    list.innerHTML = ""
+
+    data.forEach(student => {
+        const li = document.createElement('li')
+        li.innerHTML = `
+            <b>${student.name}</b> (Year ${student.yearlevel})
+            <button onclick="editStudent(${student.id}, '${student.name}', ${student.yearlevel})">Edit</button>
+            <button onclick="deleteStudent(${student.id})">Delete</button>
+        `
+        list.appendChild(li)
+    })
+}
+
+async function addStudents(){
+    const name = document.getElementById('name').value
+    const yearlevel = document.getElementById('yearlevel').value
+
+    await fetch(API, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, yearlevel })
+    })
+
+    loadStudents()
+}
+
+async function deleteStudent(id){
+    await fetch(`${API}/${id}`, {
+        method: 'DELETE'
+    })
+
+    loadStudents()
+}
+
+function editStudent(id, currentName, currentYear){
+    const newName = prompt("Enter new name:", currentName)
+    const newYear = prompt("Enter new year level:", currentYear)
+
+    if (newName && newYear) {
+        updateStudent(id, newName, newYear)
     }
-    async function addStudents(){
-        const name = document.getElementById('name').value 
-        const yearlevel= document.getElementById('yearlevel').value 
-        const res = await fetch(`http://localhost:3000/api/student`,
-            {
-                method : 'POST',
-                headers: {   
-                'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({name, yearlevel})
-            }
-      )
-      const data = await res.json()
-      console.log(data)
-      loadStudents()
-    }
+}
+
+async function updateStudent(id, name, yearlevel){
+    await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, yearlevel })
+    })
+
+    loadStudents()
+}
 </script>
 
+</body>
 </html>
